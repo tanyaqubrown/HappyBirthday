@@ -113,7 +113,7 @@ public class ConnectionsGame extends JFrame {
         ArrayList<String> lines = new ArrayList<>();
 
         //randomg choose a list
-        int randomFileNumber = (int) (Math.random() * 6) + 1;
+        int randomFileNumber = (int) (Math.random() * 9) + 1;
         String filePath = "/Users/tanyaqu/Downloads/untitled/forgrace/src/list" + randomFileNumber;
 
         File file = new File(filePath);
