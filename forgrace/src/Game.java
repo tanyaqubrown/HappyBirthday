@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 
-public class ConnectionsGame extends JFrame {
+public class Game extends JFrame {
     private final ArrayList<JButton> buttons = new ArrayList<>();
     private final HashSet<Integer> selectedIndices = new HashSet<>();
     private final Border defaultBorder = BorderFactory.createLineBorder(new Color(190, 100, 150), 3, true);
@@ -23,7 +23,7 @@ public class ConnectionsGame extends JFrame {
     private ArrayList<ArrayList<String>> originalGroups = new ArrayList<>();
     private JTextArea foundConnectionsTextArea;
 
-    public ConnectionsGame() {
+    public Game() {
         setTitle("Connections Game");
         setSize(500, 640); //height increase for new panels
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -251,7 +251,7 @@ public class ConnectionsGame extends JFrame {
      */
     private void startNewGame() {
         dispose(); //close the current game window
-        SwingUtilities.invokeLater(ConnectionsGame::new); //start a new game
+        SwingUtilities.invokeLater(Game::new); //start a new game
     }
 
     /**
@@ -296,7 +296,7 @@ public class ConnectionsGame extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(ConnectionsGame::new);
+        SwingUtilities.invokeLater(Game::new);
     }
 
 }
