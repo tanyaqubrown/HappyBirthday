@@ -14,21 +14,25 @@ import java.util.HashSet;
 public class ConnectionsGame extends JFrame {
     private final ArrayList<JButton> buttons = new ArrayList<>();
     private final HashSet<Integer> selectedIndices = new HashSet<>();
-    private final Border defaultBorder = BorderFactory.createLineBorder(new Color(190, 145, 215), 3, true); // Muted purple rounded border
-    private final Border selectedBorder = BorderFactory.createLineBorder(new Color(75, 0, 130), 5, true); // Darker purple with larger rounded border
-    private final Color disabledColor = Color.GRAY; // Color for disabled text
+    private final Border defaultBorder = BorderFactory.createLineBorder(new Color(190, 100, 150), 3, true);
+    private final Border selectedBorder = BorderFactory.createLineBorder(new Color(75, 0, 130), 5, true);
+    private final Color disabledColor = Color.GRAY;
     private int connectionsFound = 0;
-    private final int totalConnections = 4; // Total number of connections to be found
-    private String[] connectionThemes = new String[totalConnections]; // Array to store connection themes
-    private ArrayList<ArrayList<String>> originalGroups = new ArrayList<>(); // Store the original groups
+    private final int totalConnections = 4;
+    private String[] connectionThemes = new String[totalConnections];
+    private ArrayList<ArrayList<String>> originalGroups = new ArrayList<>();
+    private JTextArea foundConnectionsTextArea;
 
     public ConnectionsGame() {
         setTitle("Connections Game");
-        setSize(400, 400);
+        setSize(500, 640); //height increase for new panels
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(4, 4)); // 4x4 grid for 16 items
+        setLayout(new BorderLayout()); //use BorderLayout for main frame
 
-        // 1. load words from file
+        JPanel gamePanel = new JPanel(new GridLayout(4, 4)); //panel for game buttons
+        JPanel bottomPanel = new JPanel(new BorderLayout()); //panel for new game and hint buttons
+
+        //load words from file
         String[] items = loadWordsAndThemesFromFile();
 
         if (items == null) {
@@ -36,7 +40,7 @@ public class ConnectionsGame extends JFrame {
             System.exit(1);
         } //error message if could not load
 
-        // 2. add each block of 4 words to a group and assign them the theme
+        //add each block of 4 words to a group and assign them the theme
         for (int i = 0; i < totalConnections; i++) {
             ArrayList<String> group = new ArrayList<>();
             for (int j = 0; j < 4; j++) {
@@ -46,30 +50,58 @@ public class ConnectionsGame extends JFrame {
             connectionThemes[i] = items[16 + i]; //assign theme
         }
 
-        // Step 3: Shuffle all words on the board
+        //shuffle all words on the board
         ArrayList<String> shuffledItems = new ArrayList<>();
         for (ArrayList<String> group : originalGroups) {
             shuffledItems.addAll(group);
         }
         Collections.shuffle(shuffledItems);
 
-        //design element
+        //designing the words
         Font font = new Font("Comic Sans MS", Font.BOLD, 14);
 
-        // create buttons and store words
+        //create buttons and store words
         for (int i = 0; i < 16; i++) {
             JButton button = new JButton(shuffledItems.get(i));
             button.addActionListener(new ButtonClickListener(i));
-            button.setBackground(new Color(190, 145, 215)); // Muted purple background
-            button.setForeground(Color.BLACK); // Black font color
-            button.setFont(font); // Set custom font
-            button.setFocusable(false); // Remove focus indication
-            button.setBorder(defaultBorder); // Set default rounded border
+            button.setBackground(new Color(100, 104, 230)); //muted purple background
+            button.setForeground(Color.BLACK); //font color
+            button.setFont(font); //custom font
+            button.setFocusable(false); //remove focus indication
+            button.setBorder(defaultBorder); //default rounded border
             buttons.add(button);
-            add(button);
+            gamePanel.add(button);
         }
 
-        getContentPane().setBackground(new Color(255, 255, 255)); // Set background color of JFrame
+        //panel for displaying found connections
+        JPanel foundConnectionsPanel = new JPanel(new BorderLayout());
+        foundConnectionsTextArea = new JTextArea();
+        foundConnectionsTextArea.setEditable(false);
+        foundConnectionsTextArea.setLineWrap(true);
+        foundConnectionsTextArea.setWrapStyleWord(true);
+        foundConnectionsTextArea.setFont(new Font("Comic Sans MS", Font.PLAIN, 12));
+        JScrollPane scrollPane = new JScrollPane(foundConnectionsTextArea);
+        scrollPane.setPreferredSize(new Dimension(400, 92));
+        foundConnectionsPanel.add(scrollPane, BorderLayout.CENTER);
+        foundConnectionsPanel.setBorder(BorderFactory.createTitledBorder("Found Connections"));
+
+        //create "New Game" button
+        JButton newGameButton = new JButton("New Game");
+        newGameButton.addActionListener(e -> startNewGame());
+
+        //create "Hint" button
+        JButton hintButton = new JButton("Hint");
+        hintButton.addActionListener(e -> giveHint());
+
+        //add buttons to bottom panel
+        bottomPanel.add(newGameButton, BorderLayout.WEST);
+        bottomPanel.add(hintButton, BorderLayout.EAST);
+
+        add(gamePanel, BorderLayout.CENTER);
+        add(foundConnectionsPanel, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.NORTH);
+
+        getContentPane().setBackground(new Color(255, 255, 255)); //set background color of JFrame
 
         setVisible(true);
     }
@@ -80,8 +112,8 @@ public class ConnectionsGame extends JFrame {
     private String[] loadWordsAndThemesFromFile() {
         ArrayList<String> lines = new ArrayList<>();
 
-        // Generate a random number between 1 and 10 to select a file
-        int randomFileNumber = (int) (Math.random() * 2) + 1;
+        //randomg choose a list
+        int randomFileNumber = (int) (Math.random() * 6) + 1;
         String filePath = "/Users/tanyaqu/Downloads/untitled/forgrace/src/list" + randomFileNumber;
 
         File file = new File(filePath);
@@ -102,13 +134,13 @@ public class ConnectionsGame extends JFrame {
             return null;
         }
 
-        // Check if there are enough lines
+        //check if there are enough lines
         if (lines.size() < 20) {
             System.out.println("Not enough lines in the file.");
             return null;
         }
 
-        // first 16 lines as items for the game board
+        //first 16 lines as items for the game board
         String[] items = new String[20];
         for (int i = 0; i < 20; i++) {
             items[i] = lines.get(i);
@@ -116,7 +148,6 @@ public class ConnectionsGame extends JFrame {
 
         return items;
     }
-
 
     /**
      * button click implementation
@@ -158,10 +189,15 @@ public class ConnectionsGame extends JFrame {
         for (int i = 0; i < totalConnections; i++) {
             HashSet<String> group = new HashSet<>(originalGroups.get(i));
             if (selectedItems.equals(group)) {
-                JOptionPane.showMessageDialog(this, "You found a connection: " + connectionThemes[i]);
+//                JOptionPane.showMessageDialog(this, "You found a connection: " + connectionThemes[i]);
+
+                Icon customIcon = new ImageIcon("/sad.png");
+                JOptionPane.showMessageDialog(this, "You found a connection: " + connectionThemes[i], "Connection Found", JOptionPane.INFORMATION_MESSAGE, customIcon);
+
                 disableSelectedButtons(); // Disable buttons for the selected squares
                 connectionsFound++;
                 foundConnection = true;
+                foundConnectionsTextArea.append(connectionThemes[i] + ": " + group.toString() + "\n");
                 break;
             }
 
@@ -176,9 +212,9 @@ public class ConnectionsGame extends JFrame {
             JOptionPane.showMessageDialog(this, "Congratulations! You found all connections.");
         }
 
-        // Reset selection
+        //reset selection
         selectedIndices.clear();
-        updateButtonAppearance(); // Update button appearance after checking connections
+        updateButtonAppearance(); //update button appearance after checking connections
     }
 
     /**
@@ -188,13 +224,13 @@ public class ConnectionsGame extends JFrame {
         for (int i = 0; i < buttons.size(); i++) {
             JButton button = buttons.get(i);
             if (selectedIndices.contains(i)) {
-                button.setBorder(selectedBorder); // Set border to selected
+                button.setBorder(selectedBorder); //set border to selected
             } else {
-                button.setBorder(defaultBorder); // Set border to default
+                button.setBorder(defaultBorder); //set border to default
             }
             if (!button.isEnabled()) {
-                button.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3, true)); // Set border color to gray for disabled buttons
-                button.setForeground(disabledColor); // Set text color to gray for disabled buttons
+                button.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3, true)); //set border color to gray for disabled buttons
+                button.setForeground(disabledColor); //set text color to gray for disabled buttons
             }
         }
     }
@@ -207,6 +243,55 @@ public class ConnectionsGame extends JFrame {
             JButton button = buttons.get(index);
             button.setEnabled(false); // Disable button
             button.setBorder(defaultBorder); // Reset border to default
+        }
+    }
+
+    /**
+     * starts a new game
+     */
+    private void startNewGame() {
+        dispose(); //close the current game window
+        SwingUtilities.invokeLater(ConnectionsGame::new); //start a new game
+    }
+
+    /**
+     * gives a hint by revealing one connection
+     */
+    private void giveHint() {
+        for (int i = 0; i < totalConnections; i++) {
+            ArrayList<String> group = originalGroups.get(i);
+            boolean allEnabled = true;
+
+            for (String word : group) {
+                for (JButton button : buttons) {
+                    if (button.getText().equals(word) && !button.isEnabled()) {
+                        allEnabled = false;
+                        break;
+                    }
+                }
+                if (!allEnabled) break;
+            }
+
+            if (allEnabled) {
+                for (String word : group) {
+                    for (JButton button : buttons) {
+                        if (button.getText().equals(word)) {
+                            button.setEnabled(false); // Disable button
+                            button.setBorder(defaultBorder); // Reset border to default
+                            button.setForeground(disabledColor); // Set text color to gray
+                            button.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3, true)); // Set border color to gray for disabled buttons
+                        }
+                    }
+                }
+                foundConnectionsTextArea.append(connectionThemes[i] + ": " + group.toString() + "\n");
+                connectionsFound++;
+
+                JOptionPane.showMessageDialog(this, "A connection has been revealed: " + connectionThemes[i]);
+                if (connectionsFound == totalConnections) {
+                    JOptionPane.showMessageDialog(this, "Congratulations! You found all connections.");
+                }
+                break;
+            }
         }
     }
 
